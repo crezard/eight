@@ -1,14 +1,41 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { PartOfSpeech, QuizQuestion } from "../types";
 
-const apiKey = process.env.API_KEY || '';
-// Initialize API client. We assume the key is valid as per instructions.
+// Helper function to safely retrieve the API key in various environments
+const getApiKey = (): string => {
+  // 1. Try process.env.API_KEY (Node.js / Standard Requirement)
+  try {
+    if (typeof process !== 'undefined' && process.env?.API_KEY) {
+      return process.env.API_KEY;
+    }
+  } catch (e) {
+    // Ignore ReferenceError if process is not defined
+  }
+
+  // 2. Try VITE_API_KEY (Vercel + Vite standard)
+  try {
+    // @ts-ignore: import.meta is available in Vite environments
+    if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_KEY) {
+      // @ts-ignore
+      return import.meta.env.VITE_API_KEY;
+    }
+  } catch (e) {}
+
+  return '';
+};
+
+const apiKey = getApiKey();
+// Initialize API client.
 const ai = new GoogleGenAI({ apiKey });
 
 const MODEL_NAME = 'gemini-2.5-flash';
 
 // Helper to get cached content or fetch new
 export const generateExplanation = async (part: PartOfSpeech, koreanName: string): Promise<string> => {
+  if (!apiKey) {
+    return "API 키가 설정되지 않았습니다. Vercel 환경변수(VITE_API_KEY)를 확인해주세요.";
+  }
+
   try {
     const prompt = `
       You are an energetic and kind English teacher for Korean middle school students (Grade 1).
@@ -41,6 +68,8 @@ export const generateExplanation = async (part: PartOfSpeech, koreanName: string
 };
 
 export const generateQuiz = async (part: PartOfSpeech): Promise<QuizQuestion[]> => {
+  if (!apiKey) return [];
+
   try {
     const prompt = `Generate 3 multiple-choice questions to test a Korean middle school student's understanding of "${part}".`;
 
@@ -77,7 +106,11 @@ export const generateQuiz = async (part: PartOfSpeech): Promise<QuizQuestion[]> 
 
     const text = response.text;
     if (!text) return [];
-    return JSON.parse(text) as QuizQuestion[];
+    
+    // Clean up potential Markdown code blocks from JSON response
+    const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+    return JSON.parse(cleanedText) as QuizQuestion[];
   } catch (error) {
     console.error("Gemini Quiz Error:", error);
     return [];
@@ -85,6 +118,8 @@ export const generateQuiz = async (part: PartOfSpeech): Promise<QuizQuestion[]> 
 };
 
 export const chatWithTeacher = async (message: string, history: {role: string, parts: {text: string}[]}[]): Promise<string> => {
+    if (!apiKey) return "API 키 설정을 확인해주세요 (VITE_API_KEY).";
+
     try {
         const chat = ai.chats.create({
             model: MODEL_NAME,
