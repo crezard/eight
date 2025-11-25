@@ -13,7 +13,7 @@ export const PARTS_DATA: PartConfig[] = [
     id: PartOfSpeech.PRONOUN,
     koreanName: '대명사',
     color: 'bg-indigo-500',
-    icon: 'pointing_up', // Will use text emoji or lucide icon equivalent in component
+    icon: '👆',
     description: '명사를 대신해서 쓰는 말',
     simpleExample: 'I, You, It, They'
   },

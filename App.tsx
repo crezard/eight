@@ -8,24 +8,22 @@ function App() {
   const [selectedPart, setSelectedPart] = useState<PartConfig | null>(null);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 pb-24">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-24 relative selection:bg-blue-100 selection:text-blue-900">
       
-      {selectedPart ? (
-        <div className="animate-in fade-in zoom-in-95 duration-300">
-           <DetailView 
-             part={selectedPart} 
-             onBack={() => setSelectedPart(null)} 
-           />
-        </div>
-      ) : (
-        <Dashboard onSelect={setSelectedPart} />
-      )}
+      <main className="max-w-screen-2xl mx-auto">
+        {selectedPart ? (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <DetailView 
+               part={selectedPart} 
+               onBack={() => setSelectedPart(null)} 
+             />
+          </div>
+        ) : (
+          <Dashboard onSelect={setSelectedPart} />
+        )}
+      </main>
 
       <ChatAssistant />
-      
-      <footer className="fixed bottom-0 w-full text-center py-2 text-xs text-slate-400 bg-slate-50/80 backdrop-blur-sm pointer-events-none">
-        Powered by Google Gemini • Grade 1 Middle School English
-      </footer>
     </div>
   );
 }
